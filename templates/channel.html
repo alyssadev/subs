@@ -5,23 +5,31 @@
 	</head>
 	<body>
 		<p><a href="/">Home</a><br>The below list updates every 24 hours at midnight UTC</p>
-		<h2>Videos with subtitles</h2>
+		<h2>Videos with external subtitles ({{ data["_has"] |length }}/{{ data["_has"] |length + data["_doesnt"] |length }})</h2>
 		<ul>
 			{% for i in data["_has"] %}
-			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a>
+			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a> | 
+			{% if yt_data[i]["items"] %}
 			{% for caption in yt_data[i]["items"] %}
-			<b>{{ caption["snippet"]["trackKind"] |upper }}</b>&nbsp;
-			{% endfor %}</li>
+			{{ caption["snippet"]["trackKind"] |upper }}&nbsp;
+			{% endfor %}
+			{% else %}
+			NONE
+			{% endif %}</li>
 
 			{% endfor %}
 		</ul>
-		<h2>Videos without subtitles</h2>
+		<h2>Videos without external subtitles</h2>
 		<ul>
 			{% for i in data["_doesnt"] %}
-			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a>
+			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a> |
+			{% if yt_data[i]["items"] %}
 			{% for caption in yt_data[i]["items"] %}
-			<b>{{ caption["snippet"]["trackKind"] |upper }}</b>&nbsp;
-			{% endfor %}</li>
+			{{ caption["snippet"]["trackKind"] |upper }}&nbsp;
+			{% endfor %}
+			{% else %}
+			<b>NONE</b>
+			{% endif %}</li>
 
 			</li>
 			{% endfor %}
