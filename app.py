@@ -18,15 +18,19 @@ def view(channel):
     except:
         return "Channel not configured", 404
     data = {"_has": [], "_doesnt": []}
+    yt_data = {}
     for i in ids:
         with open(os.path.join("cache", channel, i + ".json")) as f:
             vid = load(f)
         data[i] = vid
+        with open(os.path.join("cache", channel, i + ".yt")) as f:
+            yt = load(f)
+        yt_data[i] = yt
         if vid["subtitles"]["Items"]:
             data["_has"].append(i)
         else:
             data["_doesnt"].append(i)
-    return render_template("channel.html", data=data)
+    return render_template("channel.html", data=data, yt_data=yt_data)
 
 @app.route("/")
 def index():

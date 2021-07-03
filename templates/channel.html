@@ -8,13 +8,22 @@
 		<h2>Videos with subtitles</h2>
 		<ul>
 			{% for i in data["_has"] %}
-			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a></li>
+			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a>
+			{% for caption in yt_data[i]["items"] %}
+			<b>{{ caption["snippet"]["trackKind"] |upper }}</b>&nbsp;
+			{% endfor %}</li>
+
 			{% endfor %}
 		</ul>
 		<h2>Videos without subtitles</h2>
 		<ul>
 			{% for i in data["_doesnt"] %}
-			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a></li>
+			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a>
+			{% for caption in yt_data[i]["items"] %}
+			<b>{{ caption["snippet"]["trackKind"] |upper }}</b>&nbsp;
+			{% endfor %}</li>
+
+			</li>
 			{% endfor %}
 		</ul>
 		<p><a href="https://github.com/alyssadev/subs">Source on GitHub</a></p>

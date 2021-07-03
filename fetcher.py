@@ -45,6 +45,21 @@ def get_subs_data(video_id, cache=True, channel_id=None):
             dump(data,f)
         return data
 
+def get_yt_subs_data(video_id, channel_id, cache=True):
+    try:
+        if cache and channel_id:
+            with open(os.path.join("cache", channel_id, video_id + ".yt")) as f:
+                return load(f)
+        else:
+            raise Exception
+    except:
+        api_url = "https://www.googleapis.com/youtube/v3/captions"
+        params = {"part": "snippet", "videoId": video_id, "key": key}
+        data = get(api_url, params=params).json()
+        with open(os.path.join("cache", channel_id, video_id + ".yt"), "w") as f:
+            dump(data,f)
+        return data
+
 def main():
     from argparse import ArgumentParser
     parser = ArgumentParser()
@@ -60,6 +75,8 @@ def main():
     for i in ids:
         _ = get_subs_data(i, cache=not args.no_cache, channel_id=args.channel)
         print("got {}: {} subs".format(i, _["subtitles"]["Count"]))
+        _ = get_yt_subs_data(i, args.channel, cache=True)
+        print("yt  {}: {} subs".format(i, len(_["items"])))
     return 0
 
 if __name__ == "__main__":
