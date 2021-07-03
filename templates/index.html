@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Channels</title>
+	</head>
+	<body>
+		<h2>Channels</h2>
+		<ul>
+			{% for c,t in channels.items() %}
+			<li><a href="/{{ c }}/">{{ t }}</a></li>
+			{% endfor %}
+		</ul>
+	</body>
+</html>

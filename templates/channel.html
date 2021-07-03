@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Videos</title>
+	</head>
+	<body>
+		<p><a href="/">Home</a><br>The below list updates every 24 hours at midnight UTC</p>
+		<h2>Videos with subtitles</h2>
+		<ul>
+			{% for i in data["_has"] %}
+			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a></li>
+			{% endfor %}
+		</ul>
+		<h2>Videos without subtitles</h2>
+		<ul>
+			{% for i in data["_doesnt"] %}
+			<li><a href="https://youtubexternalcc.netlify.app/video-player.html?videoID={{ i }}">{{ data[i]["video-details"]["title"] }}</a></li>
+			{% endfor %}
+		</ul>
+	</body>
+</html>
