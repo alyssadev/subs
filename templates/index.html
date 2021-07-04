@@ -5,6 +5,13 @@
 		<title>Channels</title>
 	</head>
 	<body>
+		{% with messages = get_flashed_messages() %}
+		{% if messages %}
+		{% for message in messages %}
+		<p><b>{{ message }}</b></p>
+		{% endfor %}
+		{% endif %}
+		{% endwith %}
 		<h2>Channels</h2>
 		<ul>
 			{% for c,t in channels.items() %}
