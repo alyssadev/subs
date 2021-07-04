@@ -7,8 +7,13 @@ import os.path
 from json import load, loads
 from io import BytesIO
 from math import floor
+from random import choice
 
 app = Flask(__name__)
+app.secret_key = "".join(choice(ascii_lowercase + ascii_uppercase + digits + "!@#$%^&**()_+-=[]{}") for _ in range(50))
+
+validate_channel = lambda channel: channel[:2] == "UC" and all(c in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) and len(channel) == 24
+validate_video_id = lambda video_id: all(c in ascii_lowercase + ascii_uppercase + digits + "_-" for c in video_id) and len(video_id) == 11
 
 def s2ts(inp):
     # seconds to timestamps: converts e.g 0 to 00:00:00,000, 2.427 to 00:00:02,427
@@ -26,9 +31,13 @@ def favicon():
 
 @app.route("/<channel>/<video_id>.srt")
 def srt(channel, video_id):
-    if channel[:2] != "UC" or any(c not in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) or len(channel) != 24:
+    fn = video_id + ".srt"
+    if len(video_id) > 11 and video_id[-12] == "-":
+        # filename requested
+        video_id = video_id[-11:]
+    if not validate_channel(channel):
         return "", 404
-    if any(c not in ascii_lowercase + ascii_uppercase + digits + "_-" for c in video_id) or len(video_id) != 11:
+    if not validate_video_id(video_id):
         return "", 404
     try:
         with open(os.path.join("cache", channel, video_id + ".json")) as f:
@@ -46,11 +55,11 @@ def srt(channel, video_id):
         ts1 = s2ts(l["start"])
         ts2 = s2ts(l["end"])
         out.append(fmt.format(n=n+1, ts1=ts1, ts2=ts2, line=l["text"]))
-    return send_file(BytesIO("\n".join(out).encode("utf-8")), mimetype="text/plain", attachment_filename=video_id + ".srt", as_attachment=True)
+    return send_file(BytesIO("\n".join(out).encode("utf-8")), mimetype="text/plain", attachment_filename=fn, as_attachment=True)
 
 @app.route("/<channel>/")
 def view(channel):
-    if channel[:2] != "UC" or any(c not in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) or len(channel) != 24:
+    if not validate_channel(channel):
         return "", 404
     try:
         with open(os.path.join("cache", channel, "ids")) as f:
@@ -74,7 +83,7 @@ def view(channel):
 
 @app.route("/<channel>")
 def redir(channel):
-    if channel[:2] != "UC" or any(c not in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) or len(channel) != 24:
+    if not validate_channel(channel):
         return "", 404
     return redirect("/{}/".format(channel))
 
