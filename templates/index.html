@@ -1,23 +1,12 @@
-<!doctype html>
-<html>
-	<head>
-		<link rel="shortcut icon" href="{{ url_for('static', filename='63546997.ico') }}">
+{% extends 'base.html' %}
+{% block head %}
 		<title>subs - Channels</title>
-	</head>
-	<body>
-		{% with messages = get_flashed_messages() %}
-		{% if messages %}
-		{% for message in messages %}
-		<p><b>{{ message }}</b></p>
-		{% endfor %}
-		{% endif %}
-		{% endwith %}
+{% endblock %}
+{% block body %}
 		<h2>Channels</h2>
 		<ul>
 			{% for c,t in channels.items() %}
 			<li><a href="/{{ c }}/">{{ t }}</a></li>
 			{% endfor %}
 		</ul>
-		<p><a href="https://github.com/alyssadev/subs">Source on GitHub</a></p>
-	</body>
-</html>
+{% endblock %}

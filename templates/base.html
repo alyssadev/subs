@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+	<head>
+<style>
+@media only screen and (min-width: 800px) {
+	.container {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	.vid {
+		padding: 10px;
+		width: 30%;
+	}
+}
+a {
+	text-decoration: none;
+}
+</style>
+		<link rel="shortcut icon" href="{{ url_for('static', filename='63546997.ico') }}">
+		{% block head %}{% endblock %}
+	</head>
+	<body>
+		{% with messages = get_flashed_messages() %}
+		{% if messages %}
+		{% for message in messages %}
+		<p><b>{{ message }}</b></p>
+		{% endfor %}
+		{% endif %}
+		{% endwith %}
+
+		{% block body %}{% endblock %}
+		<p><a href="https://github.com/alyssadev/subs">Source on GitHub</a></p>
+	</body>
+</html>
