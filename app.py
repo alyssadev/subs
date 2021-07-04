@@ -8,10 +8,15 @@ from json import load
 
 app = Flask(__name__)
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, "static"),
+                  '63546997.ico', mimetype='image/vnd.microsoft.icon')
+
 @app.route("/<channel>/")
 def view(channel):
     if channel[:2] != "UC" or any(c not in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) or len(channel) != 24:
-        return "Bad request", 400
+        return "", 404
     try:
         with open(os.path.join("cache", channel, "ids")) as f:
             ids = [_.strip() for _ in f]
@@ -31,6 +36,12 @@ def view(channel):
         else:
             data["_doesnt"].append(i)
     return render_template("channel.html", data=data, yt_data=yt_data)
+
+@app.route("/<channel>")
+def redir(channel):
+    if channel[:2] != "UC" or any(c not in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) or len(channel) != 24:
+        return "", 404
+    return redirect("/{}/".format(channel))
 
 @app.route("/")
 def index():
