@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from flask import *
+from flask_cors import cross_origin
 from glob import glob
 from string import ascii_lowercase, ascii_uppercase, digits
 import os.path
@@ -24,26 +25,59 @@ def s2ts(inp):
     h,m = divmod(m,60)
     return f"{h:02.0f}:{m:02.0f}:{s:02.0f},{floor(ms*100):02.0f}"
 
+def video_data(channel, video_id):
+    if not validate_channel(channel):
+        return "Invalid channel ID", None, 404
+    if not validate_video_id(video_id):
+        return "Invalid video ID", None, 404
+    try:
+        with open(os.path.join("cache", channel, video_id + ".json")) as f:
+            data = load(f)
+        with open(os.path.join("cache", channel, video_id + ".yt")) as f:
+            yt_data = load(f)
+    except:
+        return "Video ID not found", 404
+    return data, yt_data, 200
+
+def channel_data(channel):
+    if not validate_channel(channel):
+        return "Invalid channel ID", None, 404
+    try:
+        with open(os.path.join("cache", channel, "ids")) as f:
+            ids = [_.strip() for _ in f]
+    except:
+        return "Channel not configured", None, 404
+    data = {"_has": [], "_doesnt": []}
+    yt_data = {}
+    for i in ids:
+        with open(os.path.join("cache", channel, i + ".json")) as f:
+            vid = load(f)
+        data[i] = vid
+        with open(os.path.join("cache", channel, i + ".yt")) as f:
+            yt = load(f)
+        yt_data[i] = yt
+        if vid["subtitles"]["Items"]:
+            data["_has"].append(i)
+        else:
+            data["_doesnt"].append(i)
+    return data, yt_data, 200
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, "static"),
                   '63546997.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route("/<channel>/<video_id>.srt")
+@cross_origin()
 def srt(channel, video_id):
     fn = video_id + ".srt"
     if len(video_id) > 11 and video_id[-12] == "-":
         # filename requested
         video_id = video_id[-11:]
-    if not validate_channel(channel):
-        return "", 404
-    if not validate_video_id(video_id):
-        return "", 404
-    try:
-        with open(os.path.join("cache", channel, video_id + ".json")) as f:
-            data = load(f)
-    except:
-        return "", 404
+    data, yt_data, retcode = video_data(channel, video_id)
+    if retcode != 200:
+        flash(data)
+        return redirect(url_for("index"))
     if len(data["subtitles"]["Items"]) == 0:
         flash("Video has no subtitles yet")
         return redirect(url_for("index"))
@@ -58,37 +92,30 @@ def srt(channel, video_id):
     return send_file(BytesIO("\n".join(out).encode("utf-8")), mimetype="text/plain", attachment_filename=fn, as_attachment=True)
 
 @app.route("/<channel>/")
-def view(channel):
-    if not validate_channel(channel):
-        return "", 404
-    try:
-        with open(os.path.join("cache", channel, "ids")) as f:
-            ids = [_.strip() for _ in f]
-    except:
-        return "Channel not configured", 404
-    data = {"_has": [], "_doesnt": []}
-    yt_data = {}
-    for i in ids:
-        with open(os.path.join("cache", channel, i + ".json")) as f:
-            vid = load(f)
-        data[i] = vid
-        with open(os.path.join("cache", channel, i + ".yt")) as f:
-            yt = load(f)
-        yt_data[i] = yt
-        if vid["subtitles"]["Items"]:
-            data["_has"].append(i)
-        else:
-            data["_doesnt"].append(i)
+def channel_view(channel):
+    data, yt_data, retcode = channel_data(channel)
+    if retcode != 200:
+        flash(data)
+        return redirect(url_for("index"))
     return render_template("channel.html", data=data, yt_data=yt_data)
 
-@app.route("/<channel>")
-def redir(channel):
-    if not validate_channel(channel):
-        return "", 404
-    return redirect("/{}/".format(channel))
+@app.route("/<channel>/.json")
+@cross_origin()
+def channel_json(channel):
+    data, yt_data, retcode = channel_data(channel)
+    if retcode != 200:
+        return jsonify({"error": data, "code": retcode})
+    return jsonify({"data": data, "yt_data": yt_data})
 
-@app.route("/")
-def index():
+@app.route("/<channel>/<video_id>.json")
+@cross_origin()
+def video_json(channel, video_id):
+    data, yt_data, retcode = video_data(channel, video_id)
+    if retcode != 200:
+        return jsonify({"error": data, "code": retcode})
+    return jsonify({"data": data, "yt_data": yt_data})
+
+def channel_list():
     from glob import glob
     channels = {}
     for c in glob(os.path.join("cache", "*")):
@@ -96,6 +123,17 @@ def index():
         with open(i) as f:
             d = load(f)
             channels[c[6:]] = d["video-details"]["channelTitle"]
+    return channels
+
+@app.route("/.json")
+@cross_origin()
+def index_json():
+    channels = channel_list()
+    return jsonify({"channels": channels})
+
+@app.route("/")
+def index():
+    channels = channel_list()
     return render_template("index.html", channels=channels)
 
 if __name__ == "__main__":

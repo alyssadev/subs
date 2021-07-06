@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 {% block head %}
+<style>
+.mono {
+	font-family: monospace;
+}
+</style>
 		<title>subs - Channels</title>
 {% endblock %}
 {% block body %}
@@ -8,5 +13,12 @@
 			{% for c,t in channels.items() %}
 			<li><a href="/{{ c }}/">{{ t }}</a></li>
 			{% endfor %}
+		</ul>
+		<h4>API</h4>
+		<ul>
+			<li><span class="mono">/.json</span></li>
+			<li><span class="mono">/&lt;channel&gt;/.json</span></li>
+			<li><span class="mono">/&lt;channel&gt;/&lt;video_id&gt;.json</span></li>
+			<li><span class="mono">/&lt;channel&gt;/&lt;video_id&gt;.srt</span></li>
 		</ul>
 {% endblock %}
