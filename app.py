@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from flask import *
-from flask_cors import cross_origin
 from glob import glob
 from string import ascii_lowercase, ascii_uppercase, digits
 import os.path
@@ -9,12 +8,22 @@ from json import load, loads
 from io import BytesIO
 from math import floor
 from random import choice
+from functools import update_wrapper
 
 app = Flask(__name__)
 app.secret_key = "".join(choice(ascii_lowercase + ascii_uppercase + digits + "!@#$%^&**()_+-=[]{}") for _ in range(50))
 
 validate_channel = lambda channel: channel[:2] == "UC" and all(c in ascii_lowercase + ascii_uppercase + digits + "_" for c in channel) and len(channel) == 24
 validate_video_id = lambda video_id: all(c in ascii_lowercase + ascii_uppercase + digits + "_-" for c in video_id) and len(video_id) == 11
+
+def cross_origin():
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            resp = make_response(f(*args, **kwargs))
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            return resp
+        return update_wrapper(wrapped_function, f)
+    return decorator
 
 def s2ts(inp):
     # seconds to timestamps: converts e.g 0 to 00:00:00,000, 2.427 to 00:00:02,427
